@@ -1,0 +1,15 @@
+[Unit]
+Description=CIX PaperScan phone access to board results
+After=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.config/paperscan/board-ssh.env
+# Set PAPERSCAN_PHONE_BIND_IP to the computer's trusted-LAN address before enabling.
+ExecStart=/usr/bin/ssh -NT -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=yes -o ExitOnForwardFailure=yes -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -p ${PAPERSCAN_SSH_PORT} -L ${PAPERSCAN_PHONE_BIND_IP}:8088:127.0.0.1:8088 ${PAPERSCAN_SSH_USER}@${PAPERSCAN_SSH_HOST}
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

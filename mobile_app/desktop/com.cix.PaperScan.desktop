@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=此芯扫描 · PaperScan
+Comment=录制书页并在此芯板端生成 PDF
+Exec=paperscan
+Icon=com.cix.PaperScan
+Terminal=false
+Categories=Office;Utility;
+StartupNotify=true
+StartupWMClass=paperscan

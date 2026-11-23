@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#111513">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.svg">
+  <link rel="stylesheet" href="/style.css">
+  <title>PaperScan · 此芯扫描工作台</title>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <a class="brand" href="#scan"><span class="brand-mark" aria-hidden="true">▤</span><span>PaperScan<small>此芯文档</small></span></a>
+    <nav aria-label="工作台导航">
+      <button class="nav-button selected" data-tab="scan"><span aria-hidden="true">◉</span>扫描工作台</button>
+      <button class="nav-button" data-tab="library"><span aria-hidden="true">▤</span>文档库<b id="documentCount">0</b></button>
+    </nav>
+    <div class="device"><i id="deviceDot"></i><div><strong>CIX Phecda</strong><small id="deviceStatus">正在连接板子</small></div></div>
+  </aside>
+  <main>
+    <header class="topbar"><span>PaperScan <span class="slash">/</span> <strong id="crumb">扫描工作台</strong></span><span class="pill" id="connection"><i></i>正在连接</span></header>
+    <div class="content">
+      <section id="pair" class="panel pair" hidden>
+        <h1>连接此芯板子</h1>
+        <form id="pairForm"><label for="token">板子配对码</label><div class="row"><input id="token" type="password" autocomplete="off" required><button class="primary">连接</button></div></form>
+      </section>
+      <div id="workspace">
+        <section id="scan" class="tabpage">
+          <div class="heading"><div><h1>扫描工作台</h1><p>录制书页，生成可搜索的文档。</p></div><span class="pill mode">居中单页</span></div>
+          <div class="scan-grid">
+            <section class="panel camera" aria-labelledby="cameraTitle">
+              <div class="panel-head"><h2 id="cameraTitle">实时取景</h2><span class="pill live" id="liveStatus"><i></i>等待连接</span></div>
+              <div class="preview-stage">
+                <div class="viewfinder" id="viewfinder">
+                  <img id="preview" alt="当前录制范围" hidden>
+                  <div id="previewEmpty" class="preview-empty"><span aria-hidden="true">▤</span><p>正在等待摄像头</p></div>
+                </div>
+                <span class="timer" id="elapsed">00:00</span>
+              </div>
+              <div class="camera-footer"><span id="resolution">1536 × 2160 · 30 fps</span><span id="cameraModel">EMEET C60E</span></div>
+            </section>
+            <section class="panel workflow" aria-labelledby="flowTitle">
+              <div class="panel-head"><h2 id="flowTitle">扫描流程</h2><span class="pill" id="flowState">待开始</span></div>
+              <ol class="steps" id="steps"></ol>
+              <div class="controls">
+                <p id="flowNote" class="flow-note" aria-live="polite">把书页放入取景框，翻页后稍作停留。</p>
+                <button class="primary record" id="record" disabled><span aria-hidden="true">●</span> 开始录制</button>
+                <button class="danger record" id="stop" hidden>■ 停止并生成 PDF</button>
+                <button class="danger record" id="cancelJob" hidden>中断处理</button>
+                <button class="quiet wide" id="retry" hidden>重试处理</button>
+              </div>
+            </section>
+          </div>
+          <section class="panel results" aria-labelledby="resultTitle">
+            <div class="panel-head"><h2 id="resultTitle">本次结果</h2><span class="subtle" id="resultCount"></span></div>
+            <div id="result"></div>
+          </section>
+          <section class="panel recordings">
+            <div class="panel-head"><h2>已保存录制</h2><button class="quiet" id="refreshVideos">刷新</button></div>
+            <div id="videos"></div>
+          </section>
+        </section>
+        <section id="library" class="tabpage" hidden>
+          <div class="heading"><div><h1>文档库</h1><p>查看板端生成的文档与处理记录。</p></div><button class="quiet" id="refreshJobs">刷新</button></div>
+          <input id="documentSearch" type="search" aria-label="搜索文档名称" placeholder="搜索文档名称">
+          <div id="jobs" class="library-grid"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+<dialog id="viewer">
+  <div class="viewer-head"><h2 id="viewerTitle">文档预览</h2><button id="closeViewer" class="quiet" aria-label="关闭预览">关闭 ×</button></div>
+  <div class="viewer-tabs"><button id="viewSearch" class="quiet">原图</button><button id="viewText" class="quiet">文字版</button></div>
+  <div class="viewer-canvas"><img id="viewerImage" alt="文档页面"><p id="viewerError" hidden>暂时无法加载页面。</p></div>
+  <div class="viewer-foot"><button id="previousPage" class="quiet">← 上一页</button><span id="pageLabel"></span><button id="nextPage" class="quiet">下一页 →</button></div>
+</dialog>
+<dialog id="confirmAction" aria-labelledby="confirmTitle" aria-describedby="confirmDetail">
+  <form method="dialog">
+    <h2 id="confirmTitle"></h2>
+    <p id="confirmDetail"></p>
+    <div class="actions">
+      <button class="quiet" value="cancel" autofocus>返回</button>
+      <button class="danger" id="confirmSubmit" value="confirm">确认</button>
+    </div>
+  </form>
+</dialog>
+<div id="toast" role="status" hidden></div>
+<script src="/app.js"></script>
+</body>
+</html>

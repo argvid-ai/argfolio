@@ -1,0 +1,49 @@
+{
+  "version": "V3_PP-OCRv5_MiniCPM3_SinglePage_20261107",
+  "processing_page_mode": "single_page",
+  "default_capture_mode": "single_center",
+  "camera": {
+    "device": "EMEET SmartCam C60E 4K Light",
+    "source_width": 3840,
+    "source_height": 2160,
+    "fps": 30,
+    "single_center_crop": {"x": 1152, "y": 0, "width": 1536, "height": 2160},
+    "recording_width": 1536,
+    "recording_height": 2160,
+    "black_padding_added": false,
+    "full_frame_option": "Capture option only; does not enable dual-page text processing"
+  },
+  "models": {
+    "ocr": "PP-OCRv5 mobile det/cls/rec",
+    "ocr_recognition": {
+      "name": "PP-OCRv5 mobile rec, fine-tuned 2026-11-12",
+      "path": "/home/radxa/tu/model/ppocrv5_mobile/ch_PP-OCRv5_rec_mobile_finetuned_20261112.onnx",
+      "sha256": "db2d890b5f47aef4ac609620f6dcba14a85a8e355549cedc8072a627d1e75d8c"
+    },
+    "ocr_backend": "ONNX Runtime CPUExecutionProvider on CIX board",
+    "body_processing": "MiniCPM3-4B Q4_K_M on CIX board",
+    "body_role": "Paragraph structure plus at most two bounded localized corrections per page",
+    "source_policy": "Board model outputs only; no chat-authored or locally transcribed body text"
+  },
+  "baseline": "Phecda_Scan_V2_20261107_V4_Baseline",
+  "current_comparison_input": {
+    "name": "EMEET-REC-20261107-055911.mp4",
+    "origin": "Previously recorded on Windows and transferred to board",
+    "effective_width": 1216,
+    "effective_height": 2160,
+    "page_mode": "single_page",
+    "note": "This comparison input predates native 1536x2160 single-page capture"
+  },
+  "dual_page_future": {
+    "status": "planned_not_implemented",
+    "requires_separate_profile": true,
+    "potential_components": [
+      "Left and right page detection and separation",
+      "Gutter and curved-page rectification",
+      "Independent quality and occlusion checks for each page",
+      "Left-to-right page ordering and duplicate/missing-page audit",
+      "Per-page OCR and model body processing"
+    ],
+    "warning": "Current dominant-column selection is intentionally single-page and must not be reused as a complete dual-page pipeline"
+  }
+}

@@ -1,0 +1,9 @@
+[Unit]
+Description=Local SSH access to the PaperScan scanning workbench
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+EnvironmentFile=%h/.config/paperscan/board-ssh.env
+ExecStart=/usr/bin/ssh -NT -o BatchMode=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=yes -o ExitOnForwardFailure=yes -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -p ${PAPERSCAN_SSH_PORT} -L 127.0.0.1:8088:127.0.0.1:8089 ${PAPERSCAN_SSH_USER}@${PAPERSCAN_SSH_HOST}
+Restart=always
+RestartSec=4

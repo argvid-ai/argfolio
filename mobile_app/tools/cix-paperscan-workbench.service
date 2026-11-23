@@ -1,0 +1,12 @@
+[Unit]
+Description=PaperScan scanning workbench
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 %h/tu/paperscan/workbench/backend/server.py --host 127.0.0.1 --port 8089 --enable-capture --local-access --data %h/tu/paperscan/workbench-jobs --token-file %h/tu/paperscan/jobs/pairing-token.txt --runner %h/tu/paperscan/pipeline/run_single_page_video.py --results-root %h/tu/workspace
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=15
+
+[Install]
+WantedBy=default.target

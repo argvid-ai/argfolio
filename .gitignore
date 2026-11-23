@@ -1,0 +1,31 @@
+# Local captures, models, deliveries, archives, and review workspaces
+/archives/
+/runs/
+/output/
+/tmp/
+/T0_复核结果_20261107/
+/T0_复核结果_20261107.zip
+
+# Generated files and local credentials
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+build/
+dist/
+*.apk
+*.aab
+*.ipa
+*.deb
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+*.env
+!*.env.example
+*.local.sh
+*pairing*token*
+.DS_Store
