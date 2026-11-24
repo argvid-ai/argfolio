@@ -3,6 +3,9 @@
 import argparse
 import datetime as dt
 import hashlib
+import hmac
+from http.cookies import CookieError, SimpleCookie
+import ssl
 import http.server
 import io
 import json
@@ -427,6 +430,7 @@ class Gateway:
             return
         try:
             for root in self.results_roots:
+                root = root.resolve()
                 manifests = {root / 'run_manifest.json'}
                 manifests.update(root.glob('*/run_manifest.json'))
                 manifests.update(root.glob('*/results/run_manifest.json'))
@@ -527,6 +531,12 @@ def exports_pages(manifest):
 
 
 def handler_for(gateway, local_access=False):
+    media_key = secrets.token_bytes(32)
+    media_lifetime = 300
+
+    def media_ticket(window):
+        return hmac.new(media_key, str(window).encode('ascii'), hashlib.sha256).hexdigest()
+
     class Handler(http.server.BaseHTTPRequestHandler):
         def log_message(self, *args):
             pass  # Do not put pairing tokens in access logs.
@@ -535,6 +545,12 @@ def handler_for(gateway, local_access=False):
             self.send_response(code)
             self.send_header('Content-Type', ctype)
             self.send_header('Content-Length', str(len(data)))
+            if getattr(self, 'issue_media_cookie', False) and code == 200:
+                ticket = media_ticket(int(time.time()) // media_lifetime)
+                secure = isinstance(self.connection, ssl.SSLSocket) or self.headers.get('X-PaperScan-Media') == 'https'
+                cookie = f'paperscan_media={ticket}; Path=/; HttpOnly; SameSite=Strict; Max-Age={media_lifetime}'
+                self.send_header('Set-Cookie', cookie + ('; Secure' if secure else ''))
+                self.issue_media_cookie = False
             self.send_header('Cache-Control', 'no-store')
             self.send_header('X-Content-Type-Options', 'nosniff')
             self.send_header('Referrer-Policy', 'no-referrer')
@@ -568,7 +584,7 @@ def handler_for(gateway, local_access=False):
                 except (OSError, ValueError):
                     pass
 
-        def authorized(self):
+        def authorized(self, media=False):
             if local_access:
                 host = self.headers.get('Host', '')
                 if not re.fullmatch(r'(127\.0\.0\.1|localhost)(:\d+)?', host):
@@ -581,10 +597,20 @@ def handler_for(gateway, local_access=False):
                     self.json({'error': '请在工作台页面中操作。'}, 403)
                     return False
                 return True
-            query = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)
-            token = self.headers.get('Authorization', '').removeprefix('Bearer ')
-            token = token or query.get('token', [''])[0]
-            if not secrets.compare_digest(token, gateway.token):
+            authorization = self.headers.get('Authorization', '')
+            if media and not authorization:
+                cookies = SimpleCookie()
+                try:
+                    cookies.load(self.headers.get('Cookie', ''))
+                except CookieError:
+                    pass
+                ticket = cookies.get('paperscan_media')
+                if ticket and re.fullmatch(r'[0-9a-f]{64}', ticket.value):
+                    window = int(time.time()) // media_lifetime
+                    if any(hmac.compare_digest(ticket.value, media_ticket(w)) for w in (window, window - 1)):
+                        return True
+            token = authorization.removeprefix('Bearer ')
+            if not authorization.startswith('Bearer ') or not hmac.compare_digest(token.encode(), gateway.token.encode()):
                 self.json({'error': '配对码错误，请重新连接。'}, 401)
                 return False
             return True
@@ -598,10 +624,14 @@ def handler_for(gateway, local_access=False):
                 if path in ('/', '/index.html', '/app.js', '/style.css', '/manifest.webmanifest', '/icon.svg', '/apple-touch-icon.png'):
                     file = ROOT / 'web' / ('index.html' if path == '/' else path[1:])
                     return self.send_bytes(file.read_bytes(), mimetypes.guess_type(file)[0] or 'application/octet-stream')
-                if not self.authorized():
+                media = path.startswith(('/download/', '/preview/')) or path == '/api/preview.mjpeg'
+                if not self.authorized(media=media):
                     return
                 if path == '/api/status':
-                    return self.json(gateway.status())
+                    status = gateway.status()
+                    if not local_access and self.headers.get('X-PaperScan-Media') in ('http', 'https'):
+                        self.issue_media_cookie = True
+                    return self.json(status)
                 if path == '/api/videos':
                     if not gateway.enable_capture:
                         return self.json({'files': []})

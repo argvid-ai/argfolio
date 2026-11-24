@@ -12,3 +12,5 @@ python3 -m unittest discover -s mobile_app/tests -v
 `tools/install_board.sh` 安装结果查看服务。若需扫描控制，须按现场环境启用摄像头服务并配置 `--enable-capture`。桌面与手机转发 `.service` 文件从本机 `~/.config/paperscan/board-ssh.env` 读取 SSH 连接参数；参照 `tools/board-ssh.env.example` 配置，真实地址不进入 Git。自动重连要求非交互 SSH 登录。手机转发需另设可信局域网绑定地址，且不能与工作台转发争用本地 8088 端口。配对码由服务在本地首次运行时生成，应只通过私密渠道交付。
 
 Android 预览构建须提供本机 Android 工具目录及 `PAPERSCAN_PREVIEW_KEYSTORE_PASSWORD` 环境变量。签名私钥和生成的 APK 均不得提交。iOS 工程须在 Mac 上用 Xcode 编译、签名和真机验收；仓库不包含 IPA。
+
+远程浏览器在配对表单中输入配对码。API 使用授权请求头，预览和下载自动使用短时只读 Cookie。远程部署请使用 HTTPS；如旧版网关经过代理，可在受控环境内检查历史请求日志是否保存过配对参数。如有留存，轮换该部署的配对码并按日志保留策略清理副本。

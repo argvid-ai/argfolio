@@ -35,6 +35,8 @@ SSH 转发单元 `mobile_app/tools/cix-paperscan-phone.service` 与 `cix-papersc
 
 ## 检查
 
+网关回归使用本机模拟服务。要完整运行 PageFlow 测试，可先在独立 Python 3.12 虚拟环境中执行 `python -m pip install opencv-python-headless numpy pillow`。板端 OCR、相机、模型服务与客户端构建各有独立的运行依赖，见上方环境说明。
+
 ```bash
 python3 -m unittest discover -s mobile_app/tests -v
 PYTHONPATH=pageflow/src python3 -m unittest discover -s pageflow/tests -v
@@ -48,3 +50,9 @@ git status --short --untracked-files=all
 ## 提交范围和敏感配置
 
 `.gitignore` 排除 `archives/`、`runs/`、`output/`、`tmp/`、T0 复核交付、安装包、密钥、证书和本地环境文件。这些目录含大体量或特定用户的原始材料，GitHub 版只保留经过归纳的验证结果。提交前核对 `git status --short --untracked-files=all`，再执行 `git add .`。所有新增的真实服务器地址、API key、SSH 私钥、配对码、签名私钥与用户文档必须留在仓库外；服务入口和凭据用部署参数或本地环境变量配置。
+
+## 软件许可与商业使用
+
+本项目有权授权的原创软件采用 [PolyForm Noncommercial License 1.0.0](LICENSE)。在许可规定的用途内，可以使用、修改和分发软件。商业产品集成、收费服务等超出许可范围的用途，请事先向相应权利人取得单独的书面商业授权。
+
+第三方软件与工具、OCR 和语言模型权重、图标及其他素材，按相应权利人的条款使用或分发。 商标与标识的使用须遵循权利人要求。

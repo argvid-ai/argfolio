@@ -80,6 +80,25 @@ for name in ['text.pdf','search.pdf']:(r/name).write_bytes(b'%PDF-1.4\\nfixture'
         self.assertEqual(self.get('/api/jobs')[0],200)
         self.assertEqual(self.get('/api/jobs',body=[],token=True)[0],409)
 
+    def test_media_cookie_scope(self):
+        request = urllib.request.Request(self.base + '/api/status', headers={
+            'Authorization': 'Bearer ' + self.token, 'X-PaperScan-Media': 'https',
+        })
+        with urllib.request.urlopen(request, timeout=5) as response:
+            value = response.headers['Set-Cookie']
+        for flag in ('HttpOnly', 'SameSite=Strict', 'Secure'):
+            self.assertIn(flag, value)
+        cookie = value.split(';', 1)[0]
+        for path, method, expected in (
+            ('/download/missing/missing.pdf', 'GET', 404),
+            ('/api/status', 'GET', 401),
+            ('/api/status', 'POST', 401),
+        ):
+            request = urllib.request.Request(self.base + path, method=method, headers={'Cookie': cookie})
+            with self.assertRaises(urllib.error.HTTPError) as error:
+                urllib.request.urlopen(request, timeout=5)
+            self.assertEqual(error.exception.code, expected)
+
     def test_pipeline_download_and_path_confinement(self):
         code,raw=self.get('/api/jobs',{'name':'rec_20261108_120000.mp4'})
         self.assertEqual(code,202)
@@ -88,7 +107,7 @@ for name in ['text.pdf','search.pdf']:(r/name).write_bytes(b'%PDF-1.4\\nfixture'
         url=f"/download/{job['id']}/text.pdf"
         self.assertEqual(self.get(url,token=False)[0],401)
         self.assertEqual(self.get(url)[1],b'%PDF-1.4\nfixture')
-        self.assertEqual(self.get(url+'?token='+self.token,token=False)[0],200)
+        self.assertEqual(self.get(url+'?token='+self.token,token=False)[0],401)
         self.assertEqual(self.get(f"/download/{job['id']}/..%2Fjob.json")[0],404)
         self.assertEqual(self.get('/api/jobs',{'name':'../rec_20261108_120000.mp4'})[0],409)
 

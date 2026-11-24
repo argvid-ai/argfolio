@@ -50,10 +50,8 @@ function confirmAction(title, detail, button) {
   });
 }
 
-const fromLink = new URLSearchParams(location.hash.slice(1)).get('pair');
-if (fromLink?.length >= 16) {
-  token = fromLink;
-  history.replaceState(null, '', location.pathname);
+if (new URLSearchParams(location.hash.slice(1)).has('pair')) {
+  history.replaceState(null, '', location.pathname + location.search);
 }
 
 function toast(message) {
@@ -64,7 +62,7 @@ function toast(message) {
 }
 
 function headers() {
-  return {'Authorization': `Bearer ${token}`, 'X-PaperScan': 'workbench'};
+  return {'Authorization': `Bearer ${token}`, 'X-PaperScan': 'workbench', 'X-PaperScan-Media': location.protocol.slice(0, -1)};
 }
 
 async function api(path, body) {
@@ -173,13 +171,9 @@ function renderFlow() {
   }
 }
 
-function assetURL(path) {
-  return localAccess ? path : `${path}?token=${encodeURIComponent(token)}`;
-}
-
-const downloadURL = (id, name) => assetURL(`/download/${encodeURIComponent(id)}/${encodeURIComponent(name)}`);
+const downloadURL = (id, name) => `/download/${encodeURIComponent(id)}/${encodeURIComponent(name)}`;
 const previewURL = (id, number, type = 'search') =>
-  assetURL(`/preview/${encodeURIComponent(id)}/${type === 'text' ? 'text/' : ''}${String(number).padStart(4, '0')}.png`);
+  `/preview/${encodeURIComponent(id)}/${type === 'text' ? 'text/' : ''}${String(number).padStart(4, '0')}.png`;
 
 function downloads(job) {
   return `<div class="downloads">${job.preview_pages ? `<button class="quiet" data-preview="${escaped(job.id)}">预览</button>` : ''}${
@@ -310,7 +304,7 @@ function syncPreview() {
   }
   if (previewActive) return;
   previewActive = true;
-  const url = new URL(assetURL('/api/preview.mjpeg'), location.origin);
+  const url = new URL('/api/preview.mjpeg', location.origin);
   url.searchParams.set('t', Date.now());
   image.src = url.href;
 }
